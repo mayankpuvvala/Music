@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    #audio-player {
+      display: none;
+    }
+    #upload-button, #next-button, #play-next-button {
+      padding: 10px 20px;
+      background-color: lightgreen;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .audio-title {
+      font-family: 'Times New Roman', Times, serif;
+    }
+    .audio-description {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <button id="upload-button">Upload Music</button>
+  <button id="play-next-button" disabled>Play Next</button>
+  <input type="file" id="file-input" accept="audio/*" multiple style="display: none;">
+  <div id="audio-container"></div>
+
+  <script>
+    const uploadButton = document.querySelector('#upload-button');
+    const playNextButton = document.querySelector('#play-next-button');
+    const fileInput = document.querySelector('#file-input');
+    const audioContainer = document.querySelector('#audio-container');
+
+    let audioElements = [];
+    let currentAudioIndex = -1;
+
+    uploadButton.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    playNextButton.addEventListener('click', () => {
+      if (currentAudioIndex !== -1 && currentAudioIndex < audioElements.length - 1) {
+        audioElements[currentAudioIndex + 1].play();
+        currentAudioIndex++;
+      }
+    });
+
+    fileInput.addEventListener('change', () => {
+      const files = fileInput.files;
+      for (const file of files) {
+        const url = URL.createObjectURL(file);
+        const title = document.createElement('p');
+        title.textContent = file.name;
+        title.classList.add('audio-title');
+        const audio = document.createElement('audio');
+        audio.src = url;
+        audio.controls = true;
+        audio.addEventListener('ended', () => {
+          const index = audioElements.indexOf(audio);
+          if (index !== -1 && index < audioElements.length - 1) {
+            audioElements[index + 1].play();
+            currentAudioIndex++;
+          }
+        });
+        audioElements.push(audio);
+        const descriptionButton = document.createElement('button');
+        descriptionButton.textContent = '...';
+        descriptionButton.addEventListener('click', () => {
+          description.style.display = 'block';
+        });
+        const description = document.createElement('p');
+        description.textContent = 'Artist description goes here';
+        description.classList.add('audio-description');
+        audioContainer.appendChild(title);
+        audioContainer.appendChild(descriptionButton);
+        audioContainer.appendChild(audio);
+        audioContainer.appendChild(description);
+      }
+      playNextButton.disabled = false;
+    });
+  </script>
+</body>
+</html>
