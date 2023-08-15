@@ -1,83 +1,234 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <link rel="shortcut icon" type="image/x-icon" href="/Pink.jpg">
+
   <style>
-    #audio-player {
-      display: none;
+    /* Change the background color of the body */
+body {
+  background-color: #ADD8E6;
+}
+h1{
+  font-weight: bolder;
+  font: 4em sans-serif;
+  color: #000;
+}
+/* Change the font and color of the navbar */
+#navbar {
+  font-family: Arial, sans-serif;
+  color: white;
+}
+
+/* Make the upload button look the same as the record button */
+#upload-button {
+  padding: 15px 30px;
+  background-color: lightgreen;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+/* Make the loop button look the same as the upload button */
+#loop-button {
+  padding: 15px 30px;
+  background-color: lightgreen;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+#loop-button:hover {
+    background-color: #FFD700;
+}
+
+
+
+/* Change the appearance of the audio title */
+.audio-title {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.audio-title.playing {
+  color: #FF4500;
+}
+
+    body {
+      margin: 20px;
+      padding: 20px;
+      background-color: lightgray;
     }
-    #upload-button, #next-button, #play-next-button {
-      padding: 10px 20px;
-      background-color: lightgreen;
-      border-radius: 5px;
-      cursor: pointer;
+    #navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    #navbar h1 {
+      margin: 0;
+    }
+    #player {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+    #player video {
+      display: none;
+      width: 100%;
     }
     .audio-title {
-      font-family: 'Times New Roman', Times, serif;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 15px 40px;
+    }
+    .audio-title.playing {
+      font-weight: bold;
+      font-size: 1.2em;
+      padding: 15px 40px;
+      /* color: limegreen;
+      background-color: rgba(255, 255, 255, 0.5); */
+      padding: 5px;
+      border-radius: 5px;
+    }
+    .audio-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     .audio-description {
       display: none;
     }
+    
+    label {
+      font-size: 1.2em;
+    }
   </style>
 </head>
 <body>
-  <button id="upload-button">Upload Music</button>
-  <button id="play-next-button" disabled>Play Next</button>
-  <input type="file" id="file-input" accept="audio/*" multiple style="display: none;">
+  <!-- Move the record button to the right of the upload button -->
+<div id="navbar">
+  <h1>Music</h1>
+  <div>
+    <button id="upload-button">Upload</button>
+    <!-- <button id="record-button">Loop</button> -->
+  </div>
+</div>
+
+  <input type="file" id="file-input" accept="audio/*,video/*" multiple style="display: none;">
   <div id="audio-container"></div>
+  <div id="player">
+    <audio controls></audio>
+    <video controls></video>
+    <label><input type="radio" name="mode" value="audio" checked> Audio</label>
+    <label><input type="radio" name="mode" value="video"> Video</label>
+  </div>
+  <!-- <button id="record-button">Record</button>
+  <button id="pause-button">Pause</button>
+  <button id="stop-button">Stop</button> -->
 
   <script>
     const uploadButton = document.querySelector('#upload-button');
-    const playNextButton = document.querySelector('#play-next-button');
-    const fileInput = document.querySelector('#file-input');
-    const audioContainer = document.querySelector('#audio-container');
+const fileInput = document.querySelector('#file-input');
+const audioContainer = document.querySelector('#audio-container');
+const audioPlayer = document.querySelector('audio');
+const videoPlayer = document.querySelector('video');
+const modeRadios = document.querySelectorAll('input[name="mode"]');
 
-    let audioElements = [];
-    let currentAudioIndex = -1;
+let audioFiles = {};
+let videoFiles = {};
+let currentTitle = null;
 
-    uploadButton.addEventListener('click', () => {
-      fileInput.click();
-    });
+uploadButton.addEventListener('click', () => {
+  fileInput.click();
+});
 
-    playNextButton.addEventListener('click', () => {
-      if (currentAudioIndex !== -1 && currentAudioIndex < audioElements.length - 1) {
-        audioElements[currentAudioIndex + 1].play();
-        currentAudioIndex++;
+fileInput.addEventListener('change', () => {
+  const files = fileInput.files;
+  for (const file of files) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const url = reader.result;
+      let fileName = file.name.replace(/\.(mp3|mp4)$/, '').replace(/^y2mate\.com - /, '').replace(/_320kbps$/, '');
+      if (file.type.startsWith('audio/')) {
+        audioFiles[fileName] = url;
+        addAudioItem(fileName);
+      } else if (file.type.startsWith('video/')) {
+        videoFiles[fileName] = url;
+        addAudioItem(fileName);
       }
-    });
+    };
+    reader.readAsDataURL(file);
+  }
+});
 
-    fileInput.addEventListener('change', () => {
-      const files = fileInput.files;
-      for (const file of files) {
-        const url = URL.createObjectURL(file);
-        const title = document.createElement('p');
-        title.textContent = file.name;
-        title.classList.add('audio-title');
-        const audio = document.createElement('audio');
-        audio.src = url;
-        audio.controls = true;
-        audio.addEventListener('ended', () => {
-          const index = audioElements.indexOf(audio);
-          if (index !== -1 && index < audioElements.length - 1) {
-            audioElements[index + 1].play();
-            currentAudioIndex++;
-          }
-        });
-        audioElements.push(audio);
-        const descriptionButton = document.createElement('button');
-        descriptionButton.textContent = '...';
-        descriptionButton.addEventListener('click', () => {
-          description.style.display = 'block';
-        });
-        const description = document.createElement('p');
-        description.textContent = 'Artist description goes here';
-        description.classList.add('audio-description');
-        audioContainer.appendChild(title);
-        audioContainer.appendChild(descriptionButton);
-        audioContainer.appendChild(audio);
-        audioContainer.appendChild(description);
+function addAudioItem(fileName) {
+  const audioItem = document.createElement('div');
+  audioItem.classList.add('audio-item');
+
+  const title = document.createElement('p');
+  title.textContent = fileName;
+  title.classList.add('audio-title');
+  title.addEventListener('click', () => {
+    if (currentTitle) {
+      currentTitle.classList.remove('playing');
+    }
+    for (const radio of modeRadios) {
+      if (radio.checked) {
+        if (radio.value === 'audio') {
+          audioPlayer.src = audioFiles[fileName];
+          audioPlayer.play();
+        } else if (radio.value === 'video') {
+          videoPlayer.src = videoFiles[fileName];
+          videoPlayer.play();
+        }
+        break;
       }
-      playNextButton.disabled = false;
-    });
+    }
+    title.classList.add('playing');
+    currentTitle = title;
+  });
+  audioItem.appendChild(title);
+
+  audioContainer.appendChild(audioItem);
+}
+const loopButton = document.querySelector('#loop-button');
+
+// Add a variable to keep track of whether loop mode is enabled
+let loopEnabled = false;
+
+// Add an event listener to handle clicks on the loop button
+loopButton.addEventListener('click', () => {
+  loopEnabled = !loopEnabled;
+  loopButton.textContent = loopEnabled ? 'Loop On' : 'Loop';
+});
+
+
+// Add an event listener to handle the end of playback for the audio player
+audioPlayer.addEventListener('ended', () => {
+  if (loopEnabled) {
+    // If loop mode is enabled, start playback again
+    audioPlayer.play();
+  } else {
+    // If loop mode is not enabled, play the next audio file in storage
+    const titles = Object.keys(audioFiles);
+    const currentIndex = titles.indexOf(currentTitle.textContent);
+    if (currentIndex !== -1 && currentIndex < titles.length - 1) {
+      const nextTitle = titles[currentIndex + 1];
+      audioPlayer.src = audioFiles[nextTitle];
+      audioPlayer.play();
+      currentTitle.classList.remove('playing');
+      currentTitle = document.querySelector(`.audio-title[textContent="${nextTitle}"]`);
+      currentTitle.classList.add('playing');
+    }
+  }
+});
+
+
+
   </script>
+  <!-- <script src="app.js"></script> -->
 </body>
 </html>
