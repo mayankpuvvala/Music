@@ -194,6 +194,20 @@ h1{
     padding: 10px 20px;
   }
 }
+@media only screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) {
+  /* Add styles here to change the behavior of the notification bar */
+}#progress-container {
+  width: 100%;
+  height: 10px;
+  background-color: rgba(128,128,128,0.5);
+}
+
+#progress-bar {
+  width: 0%;
+  height: 100%;
+  background-color: orange;
+}
+
 
   </style>
   
@@ -298,14 +312,30 @@ h1{
   progressBar.style.width=`${(audioPlayer.currentTime/audioPlayer.duration)*100}%`
   })
   
+  
   // Add an event listener to handle clicks on the progress bar
-  const progressContainer=document.querySelector('#progress-container')
-  progressContainer.addEventListener('click',(event)=>{
+  // const progressContainer=document.querySelector('#progress-container')
+  const progressContainer = document.querySelector('#progress-container');
+progressContainer.addEventListener('mousedown', handleProgressDrag);
+document.addEventListener('mouseup', () => {
+  document.removeEventListener('mousemove', handleProgressDrag);
+});
+
+progressContainer.addEventListener('click',(event)=>{
   const clickPosition=event.offsetX
   const containerWidth=progressContainer.offsetWidth
   const clickPositionRatio=clickPosition/containerWidth
   audioPlayer.currentTime=clickPositionRatio*audioPlayer.duration
   })
+function handleProgressDrag(event) {
+  const clickPosition = event.offsetX;
+  const containerWidth = progressContainer.offsetWidth;
+  const clickPositionRatio = clickPosition / containerWidth;
+  audioPlayer.currentTime = clickPositionRatio * audioPlayer.duration;
+  
+  document.addEventListener('mousemove', handleProgressDrag);
+}
+
   
   // Add event listeners to handle clicks on the previous, pause, and next buttons
   previousButton.addEventListener('click', () => {
