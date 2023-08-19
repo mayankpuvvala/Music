@@ -105,6 +105,13 @@ h1{
     label {
       font-size: 1.2em;
     }
+    #player{
+      padding: 40px;
+      background-color: rgba(0,0,0);
+      color: antiquewhite;
+      font-size: large;
+      
+    }
   </style>
 </head>
 <body>
@@ -115,6 +122,7 @@ h1{
       <label><input type="radio" name="mode" value="video"> Video</label>
       <button id="upload-button">Upload</button>
       <button id="loop-button">Loop</button>
+      <button id="link-button">Link</button>
     </div>
   </div>
   
@@ -132,6 +140,13 @@ h1{
     </div>
     <audio></audio>
     <video controls></video>
+  </div>
+  
+  <div id="link-popup" style="display: none;">
+    <label for="link-input">Enter YouTube video URL:</label><br>
+    <input type="text" id="link-input"><br><br>
+    <button id="link-submit-button">Submit</button>
+    <button id="link-cancel-button">Cancel</button>
   </div>
   
   <style>
@@ -160,12 +175,26 @@ h1{
     #controls button {
       margin: 0 10px;
     }
-    #player{
-      padding: 40px;
-      background-color: rgba(0,0,0);
-      color: antiquewhite;
-      font-size: large;
-    }
+    
+    #link-popup {
+      position: fixed;
+      top: calc(50% - 100px);
+      left: calc(50% - 150px);
+      width: 300px;
+      height: 200px;
+      background-color: white;
+      border: solid black;
+      padding: 20px;
+      text-align: center;
+      z-index: 9999;
+  }
+  @media only screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) {
+  #controls button {
+    font-size: 20px;
+    padding: 10px 20px;
+  }
+}
+
   </style>
   
   <script>
@@ -178,10 +207,18 @@ h1{
   const previousButton = document.querySelector('#previous-button');
   const pauseButton = document.querySelector('#pause-button');
   const nextButton = document.querySelector('#next-button');
+  const linkButton = document.querySelector('#link-button');
+  const linkPopup = document.querySelector('#link-popup');
+  const linkInput = document.querySelector('#link-input');
+  const linkSubmitButton = document.querySelector('#link-submit-button');
+  const linkCancelButton = document.querySelector('#link-cancel-button');
   
   let audioFiles = {};
   let videoFiles = {};
   let currentTitle = null;
+  
+  // Load saved songs from localStorage
+  loadSongs();
   
   uploadButton.addEventListener('click', () => {
   fileInput.click();
@@ -316,6 +353,51 @@ h1{
   updateCurrentTitle(previousTitle);
   }
   }
+  
+  // Save songs to localStorage
+  function saveSongs() {
+  localStorage.setItem('songs', JSON.stringify({ audioFiles, videoFiles }));
+  }
+  
+  // Load songs from localStorage
+  function loadSongs() {
+  const savedSongs = JSON.parse(localStorage.getItem('songs'));
+  if (savedSongs) {
+  audioFiles = savedSongs.audioFiles;
+  videoFiles = savedSongs.videoFiles;
+  Object.keys(audioFiles).forEach(addAudioItem);
+  }
+  }
+  
+  // Add an event listener to save songs to localStorage when the page is unloaded
+  window.addEventListener('beforeunload', saveSongs);
+  
+  // Add an event listener to handle clicks on the link button
+  linkButton.addEventListener('click', () => {
+  linkPopup.style.display = 'block';
+  });
+  
+  // Add an event listener to handle clicks on the link submit button
+  linkSubmitButton.addEventListener('click', () => {
+  const videoUrl = linkInput.value;
+  if (videoUrl) {
+  const videoIdMatch = videoUrl.match(/v=([^&]+)/);
+  if (videoIdMatch) {
+  const videoId = videoIdMatch[1];
+  const audioUrl = `https://www.yt-download.org/api/button/mp3/${videoId}`;
+  addAudioItem(`YouTube - ${videoId}`);
+  audioFiles[`YouTube - ${videoId}`] = audioUrl;
+  }
+  }
+  linkInput.value = '';
+  linkPopup.style.display = 'none';
+  });
+  
+  // Add an event listener to handle clicks on the link cancel button
+  linkCancelButton.addEventListener('click', () => {
+  linkInput.value = '';
+  linkPopup.style.display = 'none';
+  });
   </script>
   
 </body>
