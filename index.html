@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <link rel="shortcut icon" type="image/x-icon" href="/Pink.jpg">
+  <link rel="shortcut icon" type="image/x-icon" href="/pink.jpg">
 
   <style>
     /* Change the background color of the body */
@@ -112,17 +112,19 @@ h1{
       font-size: large;
       
     }
+    
   </style>
 </head>
-<body>
-  <div id="navbar">
-    <h1>Music</h1>
+   <div id="navbar">
+    <h1 id="music-header">Music</h1>
+    <div id="search-container" style="display: none;">
+      <input type="text" id="search-input" placeholder="Search...">
+    </div>
     <div>
       <label><input type="radio" name="mode" value="audio" checked> Audio</label>
       <label><input type="radio" name="mode" value="video"> Video</label>
       <button id="upload-button">Upload</button>
       <button id="loop-button">Loop</button>
-      <button id="link-button">Link</button>
     </div>
   </div>
   
@@ -140,13 +142,6 @@ h1{
     </div>
     <audio></audio>
     <video controls></video>
-  </div>
-  
-  <div id="link-popup" style="display: none;">
-    <label for="link-input">Enter YouTube video URL:</label><br>
-    <input type="text" id="link-input"><br><br>
-    <button id="link-submit-button">Submit</button>
-    <button id="link-cancel-button">Cancel</button>
   </div>
   
   <style>
@@ -176,39 +171,15 @@ h1{
       margin: 0 10px;
     }
     
-    #link-popup {
-      position: fixed;
-      top: calc(50% - 100px);
-      left: calc(50% - 150px);
-      width: 300px;
-      height: 200px;
-      background-color: white;
-      border: solid black;
-      padding: 20px;
-      text-align: center;
-      z-index: 9999;
+    #search-container {
+      display: flex;
+      align-items: center;
   }
-  @media only screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) {
-  #controls button {
-    font-size: 20px;
-    padding: 10px 20px;
+    
+  #search-input {
+  width: calc(100% - 20px);
+  padding: 5px;
   }
-}
-@media only screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) {
-  /* Add styles here to change the behavior of the notification bar */
-}#progress-container {
-  width: 100%;
-  height: 10px;
-  background-color: rgba(128,128,128,0.5);
-}
-
-#progress-bar {
-  width: 0%;
-  height: 100%;
-  background-color: orange;
-}
-
-
   </style>
   
   <script>
@@ -221,11 +192,9 @@ h1{
   const previousButton = document.querySelector('#previous-button');
   const pauseButton = document.querySelector('#pause-button');
   const nextButton = document.querySelector('#next-button');
-  const linkButton = document.querySelector('#link-button');
-  const linkPopup = document.querySelector('#link-popup');
-  const linkInput = document.querySelector('#link-input');
-  const linkSubmitButton = document.querySelector('#link-submit-button');
-  const linkCancelButton = document.querySelector('#link-cancel-button');
+  const musicHeader = document.querySelector('#music-header');
+  const searchContainer = document.querySelector('#search-container');
+  const searchInput = document.querySelector('#search-input');
   
   let audioFiles = {};
   let videoFiles = {};
@@ -312,30 +281,14 @@ h1{
   progressBar.style.width=`${(audioPlayer.currentTime/audioPlayer.duration)*100}%`
   })
   
-  
   // Add an event listener to handle clicks on the progress bar
-  // const progressContainer=document.querySelector('#progress-container')
-  const progressContainer = document.querySelector('#progress-container');
-progressContainer.addEventListener('mousedown', handleProgressDrag);
-document.addEventListener('mouseup', () => {
-  document.removeEventListener('mousemove', handleProgressDrag);
-});
-
-progressContainer.addEventListener('click',(event)=>{
+  const progressContainer=document.querySelector('#progress-container')
+  progressContainer.addEventListener('click',(event)=>{
   const clickPosition=event.offsetX
   const containerWidth=progressContainer.offsetWidth
   const clickPositionRatio=clickPosition/containerWidth
   audioPlayer.currentTime=clickPositionRatio*audioPlayer.duration
   })
-function handleProgressDrag(event) {
-  const clickPosition = event.offsetX;
-  const containerWidth = progressContainer.offsetWidth;
-  const clickPositionRatio = clickPosition / containerWidth;
-  audioPlayer.currentTime = clickPositionRatio * audioPlayer.duration;
-  
-  document.addEventListener('mousemove', handleProgressDrag);
-}
-
   
   // Add event listeners to handle clicks on the previous, pause, and next buttons
   previousButton.addEventListener('click', () => {
@@ -402,31 +355,24 @@ function handleProgressDrag(event) {
   // Add an event listener to save songs to localStorage when the page is unloaded
   window.addEventListener('beforeunload', saveSongs);
   
-  // Add an event listener to handle clicks on the link button
-  linkButton.addEventListener('click', () => {
-  linkPopup.style.display = 'block';
+  // Add an event listener to handle clicks on the music header
+  musicHeader.addEventListener('click', () => {
+  musicHeader.style.display = 'none';
+  searchContainer.style.display = 'flex';
+  searchInput.focus();
   });
   
-  // Add an event listener to handle clicks on the link submit button
-  linkSubmitButton.addEventListener('click', () => {
-  const videoUrl = linkInput.value;
-  if (videoUrl) {
-  const videoIdMatch = videoUrl.match(/v=([^&]+)/);
-  if (videoIdMatch) {
-  const videoId = videoIdMatch[1];
-  const audioUrl = `https://www.yt-download.org/api/button/mp3/${videoId}`;
-  addAudioItem(`YouTube - ${videoId}`);
-  audioFiles[`YouTube - ${videoId}`] = audioUrl;
+  // Add an event listener to handle input on the search input
+  searchInput.addEventListener('input', () => {
+  const searchTerm = searchInput.value.toLowerCase();
+  const audioTitles = document.querySelectorAll('.audio-title');
+  for (const title of audioTitles) {
+  if (title.textContent.toLowerCase().includes(searchTerm)) {
+  title.parentElement.style.display = 'block';
+  } else {
+  title.parentElement.style.display = 'none';
   }
   }
-  linkInput.value = '';
-  linkPopup.style.display = 'none';
-  });
-  
-  // Add an event listener to handle clicks on the link cancel button
-  linkCancelButton.addEventListener('click', () => {
-  linkInput.value = '';
-  linkPopup.style.display = 'none';
   });
   </script>
   
