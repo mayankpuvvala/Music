@@ -112,7 +112,21 @@ h1{
       font-size: large;
       
     }
-    
+    /* Add a media query for devices with a max-width of 375px (iPhone XS) */
+@media only screen and (max-width: 375px) {
+  /* Increase the font size of the song name */
+  .audio-title {
+    font-size: 24px;
+  }
+
+  /* Increase the size of the buttons */
+  #controls button {
+    padding: 20px;
+    font-size: 18px;
+  min-width: 100px;
+  }
+}
+
   </style>
 </head>
    <div id="navbar">
@@ -375,6 +389,6 @@ h1{
   }
   });
   </script>
-  
+  <!-- <script src='/app.js' type='text/javascript'></script> -->
 </body>
 </html>
